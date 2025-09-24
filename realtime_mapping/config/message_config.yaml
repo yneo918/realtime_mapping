@@ -1,0 +1,126 @@
+# ROS 2 message configuration file
+# Shared definitions consumed by both RealtimeMapper and FakePublisher
+
+sensor_defaults:
+  value_range:
+    min: 0.0
+    max: 100.0
+
+inputs:
+  - name: "gps_primary"
+    position:
+      topic: "/gps/fix"
+      message_type: "sensor_msgs/NavSatFix"
+      fields:
+        latitude: "latitude"
+        longitude: "longitude"
+        altitude: "altitude"
+      geo_origin:
+        latitude: 35.0000
+        longitude: 139.0000
+    sensor_data:
+      topic: "/sensor/data"
+      message_type: "std_msgs/Float64"
+      fields:
+        value: "data"
+    simulation:
+      enabled: true
+      motion:
+        radius: 5.0
+        rate: 5.0
+        noise: 2.0
+        phase_deg: 0.0
+        angular_speed: 0.20944  # ≈ π/15
+      value_center: 60.0
+      value_amplitude: 30.0
+      geo_origin_offset:
+        latitude: 0.0
+        longitude: 0.0
+
+  - name: "gps_secondary"
+    position:
+      topic: "/gps/fix_secondary"
+      message_type: "sensor_msgs/NavSatFix"
+      fields:
+        latitude: "latitude"
+        longitude: "longitude"
+        altitude: "altitude"
+      geo_origin:
+        latitude: 35.0003
+        longitude: 139.0003
+    sensor_data:
+      topic: "/sensor/data_secondary"
+      message_type: "std_msgs/Float64"
+      fields:
+        value: "data"
+    simulation:
+      enabled: true
+      motion:
+        radius: 8.0
+        rate: 7.0
+        noise: 3.5
+        phase_deg: 90.0
+        angular_speed: 0.26180  # ≈ 3π/36
+      value_center: 45.0
+      value_amplitude: 20.0
+
+  - name: "local_pose"
+    position:
+      topic: "/robot/pose"
+      message_type: "geometry_msgs/PoseWithCovarianceStamped"
+      fields:
+        x: "pose.pose.position.x"
+        y: "pose.pose.position.y"
+        z: "pose.pose.position.z"
+      origin:
+        x: 0.0
+        y: 0.0
+    sensor_data:
+      topic: "/sensor/local_intensity"
+      message_type: "std_msgs/Float64"
+      fields:
+        value: "data"
+    simulation:
+      enabled: true
+      motion:
+        radius: 4.0
+        rate: 6.0
+        noise: 1.5
+        phase_deg: 180.0
+        angular_speed: 0.20944
+      value_center: 55.0
+      value_amplitude: 15.0
+
+mapping:
+  cell_size: 1.0
+  map_size:
+    width: 100
+    height: 100
+  origin:
+    x: 0.0
+    y: 0.0
+  update_method: "average"
+  display:
+    update_rate: 10.0
+    colormap: "viridis"
+    show_colorbar: true
+
+output:
+  csv:
+    enabled: true
+    filename_pattern: "mapping_data_{timestamp}.csv"
+    include_metadata: true
+  image:
+    enabled: true
+    filename_pattern: "heatmap_{timestamp}.png"
+    dpi: 300
+    format: "png"
+
+topic_detection:
+  enabled: true
+  timeout: 5.0
+  excluded_topics:
+    - "/rosout"
+    - "/parameter_events"
+    - "/tf"
+    - "/tf_static"

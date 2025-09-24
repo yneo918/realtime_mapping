@@ -1,0 +1,39 @@
+mapping:
+  cell_size: 1.0
+  display:
+    colormap: viridis
+    show_colorbar: true
+    show_grid: true
+    update_rate: 10.0
+  map_size:
+    height: 100
+    width: 100
+  origin:
+    x: 0.0
+    y: 0.0
+  update_method: average
+output:
+  csv:
+    enabled: true
+    filename_pattern: mapping_data_{timestamp}.csv
+    include_metadata: true
+  image:
+    dpi: 300
+    enabled: true
+    filename_pattern: heatmap_{timestamp}.png
+    format: png
+position:
+  fields:
+    x: x
+    y: y
+  message_type: geometry_msgs/msg/Pose2D
+  topic: /p1/pose2D
+sensor_data:
+  colormap: hot
+  fields:
+    value: data
+  message_type: std_msgs/msg/Float64
+  topic: /p1/rssi
+  value_range:
+    max: 100.0
+    min: 0.0

@@ -1,0 +1,50 @@
+# Sample configuration for odometry + range sensor
+# Usage: ros2 run realtime_mapping realtime_mapper --config config/odom_range_example.yaml
+
+position:
+  topic: "/odom"
+  message_type: "nav_msgs/Odometry"
+  fields:
+    x: "pose.pose.position.x"
+    y: "pose.pose.position.y"
+    z: "pose.pose.position.z"
+
+sensor_data:
+  topic: "/ultrasonic/range"
+  message_type: "sensor_msgs/Range"
+  fields:
+    value: "range"
+  value_range:
+    min: 0.0
+    max: 5.0  # 5 m range
+  colormap: "viridis"
+
+mapping:
+  cell_size: 0.5  # 50 cm x 50 cm cell
+  map_size:
+    width: 200
+    height: 200
+  origin:
+    x: 0.0
+    y: 0.0
+  update_method: "latest"  # use the most recent value
+  display:
+    update_rate: 15.0
+    colormap: "viridis"
+    show_grid: true
+    show_colorbar: true
+
+output:
+  csv:
+    enabled: true
+    filename_pattern: "range_sensor_mapping_{timestamp}.csv"
+    include_metadata: true
+  image:
+    enabled: true
+    filename_pattern: "range_sensor_heatmap_{timestamp}.png"
+    dpi: 200
+    format: "png"
+
+topic_detection:
+  enabled: true
+  timeout: 10.0

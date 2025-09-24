@@ -1,0 +1,46 @@
+# Sample configuration for GPS + sensor data
+# Usage: ros2 run realtime_mapping realtime_mapper --config config/gps_example.yaml
+
+position:
+  topic: "/gps/fix"
+  message_type: "sensor_msgs/NavSatFix"
+  fields:
+    latitude: "latitude"
+    longitude: "longitude"
+    altitude: "altitude"
+
+sensor_data:
+  topic: "/environmental/temperature"
+  message_type: "std_msgs/Float64"
+  fields:
+    value: "data"
+  value_range:
+    min: -10.0
+    max: 40.0
+  colormap: "coolwarm"
+
+mapping:
+  cell_size: 5.0  # 5 m x 5 m cell
+  map_size:
+    width: 200
+    height: 200
+  origin:
+    x: 139.6917  # approximate longitude near Tokyo Station
+    y: 35.6895   # approximate latitude near Tokyo Station
+  update_method: "average"
+  display:
+    update_rate: 5.0
+    colormap: "coolwarm"
+    show_grid: true
+    show_colorbar: true
+
+output:
+  csv:
+    enabled: true
+    filename_pattern: "gps_temperature_data_{timestamp}.csv"
+    include_metadata: true
+  image:
+    enabled: true
+    filename_pattern: "temperature_heatmap_{timestamp}.png"
+    dpi: 150
+    format: "png"

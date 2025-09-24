@@ -1,0 +1,46 @@
+# Sample configuration for robot pose + LiDAR data
+# Usage: ros2 run realtime_mapping realtime_mapper --config config/robot_pose_example.yaml
+
+position:
+  topic: "/robot/pose"
+  message_type: "geometry_msgs/PoseWithCovarianceStamped"
+  fields:
+    x: "pose.pose.position.x"
+    y: "pose.pose.position.y"
+    z: "pose.pose.position.z"
+
+sensor_data:
+  topic: "/scan"
+  message_type: "sensor_msgs/LaserScan"
+  fields:
+    value: "intensities[0]"  # use the intensity of the first beam
+  value_range:
+    min: 0.0
+    max: 4095.0
+  colormap: "plasma"
+
+mapping:
+  cell_size: 0.1  # 10 cm x 10 cm cell (high resolution)
+  map_size:
+    width: 1000
+    height: 1000
+  origin:
+    x: 0.0
+    y: 0.0
+  update_method: "max"  # keep the maximum observed value
+  display:
+    update_rate: 20.0
+    colormap: "plasma"
+    show_grid: false
+    show_colorbar: true
+
+output:
+  csv:
+    enabled: true
+    filename_pattern: "robot_lidar_mapping_{timestamp}.csv"
+    include_metadata: true
+  image:
+    enabled: true
+    filename_pattern: "lidar_intensity_map_{timestamp}.png"
+    dpi: 300
+    format: "png"
