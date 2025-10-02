@@ -1,8 +1,15 @@
 devel/
-logs/
+log/
 build/
+install/
+output/
 bin/
 lib/
+
+# Generated config files
+**/generated_config.yaml
+**/*_sim.yaml
+/config/
 msg_gen/
 srv_gen/
 msg/*Action.msg

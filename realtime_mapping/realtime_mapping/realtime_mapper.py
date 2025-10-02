@@ -107,6 +107,9 @@ class RealtimeMapper(Node):
                     self.get_logger().warn(f"Input {input_name} is missing position or sensor configuration. Skipping.")
                     continue
 
+                position_topic = pos_config.get('topic', '')
+                sensor_topic = sensor_config.get('topic', '')
+
                 pos_msg_type = self.import_message_type(pos_config['message_type'])
                 sensor_msg_type = self.import_message_type(sensor_config['message_type'])
 
@@ -143,6 +146,8 @@ class RealtimeMapper(Node):
                     'latitude_scale': latitude_scale,
                     'origin_x': origin_x,
                     'origin_y': origin_y,
+                    'position_topic': position_topic,
+                    'sensor_topic': sensor_topic,
                 }
 
                 self.current_positions[input_name] = None
@@ -276,9 +281,15 @@ class RealtimeMapper(Node):
                     x, y = position
                     self.update_heatmap(x, y, sensor_value)
 
+                    # Store raw data with topic names for time-series export
+                    pos_topic = state['position_topic']
+                    sensor_topic = state['sensor_topic']
+
                     self.sensor_data_history.append({
                         'input': input_name,
                         'timestamp': self.get_clock().now().to_msg(),
+                        'position_topic': pos_topic,
+                        'sensor_topic': sensor_topic,
                         'x': x,
                         'y': y,
                         'value': sensor_value
@@ -436,6 +447,38 @@ class RealtimeMapper(Node):
 
         self.get_logger().info(f"CSV data saved to {filepath}")
 
+    def save_raw_timeseries_data(self):
+        """Persist all received sensor data as time-series CSV."""
+        if not self.output_config['csv']['enabled']:
+            return
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"raw_timeseries_{timestamp}.csv"
+        filepath = os.path.join('output', filename)
+
+        with open(filepath, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+
+            # Header
+            writer.writerow(['Timestamp', 'Position_Topic', 'Sensor_Topic', 'Pos_X', 'Pos_Y', 'Scalar'])
+
+            # Time-series data rows
+            for record in self.sensor_data_history:
+                # Convert ROS timestamp to seconds
+                ts = record['timestamp']
+                timestamp_sec = ts.sec + ts.nanosec * 1e-9
+
+                writer.writerow([
+                    timestamp_sec,
+                    record['position_topic'],
+                    record['sensor_topic'],
+                    record['x'],
+                    record['y'],
+                    record['value']
+                ])
+
+        self.get_logger().info(f"Raw time-series data saved to {filepath}")
+
     def save_image(self):
         """Persist the heatmap as an image."""
         if not self.output_config['image']['enabled']:
@@ -466,6 +509,7 @@ class RealtimeMapper(Node):
         def on_key(event):
             if event.key == 's':
                 self.save_csv_data()
+                self.save_raw_timeseries_data()
                 self.save_image()
 
         self.fig.canvas.mpl_connect('key_press_event', on_key)
@@ -476,6 +520,7 @@ class RealtimeMapper(Node):
         """Perform shutdown bookkeeping."""
         self.running = False
         self.save_csv_data()
+        self.save_raw_timeseries_data()
         self.save_image()
         self.get_logger().info("Realtime Mapper shutdown")
 
