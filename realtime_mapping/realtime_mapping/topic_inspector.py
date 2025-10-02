@@ -92,7 +92,12 @@ class TopicInspector(Node):
         pos_fields = self.guess_position_fields(pos_structure.get('fields', []))
         sensor_fields = self.guess_sensor_fields(sensor_structure.get('fields', []))
 
-        config = {
+        # Determine position type (GPS or local coordinates)
+        is_gps = 'latitude' in pos_fields and 'longitude' in pos_fields
+
+        # Build input configuration
+        input_config = {
+            'name': 'generated_input',
             'position': {
                 'topic': pos_topic_name,
                 'message_type': pos_msg_type,
@@ -101,10 +106,27 @@ class TopicInspector(Node):
             'sensor_data': {
                 'topic': sensor_topic_name,
                 'message_type': sensor_msg_type,
-                'fields': sensor_fields,
-                'value_range': {'min': 0.0, 'max': 100.0},
-                'colormap': 'hot'
+                'fields': sensor_fields
+            }
+        }
+
+        # Add origin configuration based on position type
+        if is_gps:
+            input_config['position']['geo_origin'] = {
+                'latitude': 35.0000,
+                'longitude': 139.0000
+            }
+        else:
+            input_config['position']['origin'] = {
+                'x': 0.0,
+                'y': 0.0
+            }
+
+        config = {
+            'sensor_defaults': {
+                'value_range': {'min': 0.0, 'max': 100.0}
             },
+            'inputs': [input_config],
             'mapping': {
                 'cell_size': 1.0,
                 'map_size': {'width': 100, 'height': 100},
@@ -113,7 +135,6 @@ class TopicInspector(Node):
                 'display': {
                     'update_rate': 10.0,
                     'colormap': 'viridis',
-                    'show_grid': True,
                     'show_colorbar': True
                 }
             },
@@ -129,6 +150,16 @@ class TopicInspector(Node):
                     'dpi': 300,
                     'format': 'png'
                 }
+            },
+            'topic_detection': {
+                'enabled': True,
+                'timeout': 5.0,
+                'excluded_topics': [
+                    '/rosout',
+                    '/parameter_events',
+                    '/tf',
+                    '/tf_static'
+                ]
             }
         }
 
